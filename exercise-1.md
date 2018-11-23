@@ -50,3 +50,14 @@ src\app\root-store\
     `-- index.ts                                      
 ```
 
+## 4. Add Metareducer Store Freeze, to detect shared state errors during development
+- Only needed with ngrx6. When ngrx7 is released it will be included.
+
+```bash
+ npm i -D ngrx-store-freeze
+```
+
+add to root-store/state/index.ts
+```typescript
+export const metaReducers: MetaReducer<State>[] = !environment.production ? [storeFreeze] : [];
+```
