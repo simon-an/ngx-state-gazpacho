@@ -2,13 +2,21 @@ import { Action } from '@ngrx/store';
 import { Safe } from '~core/model';
 
 export enum SafeListActionTypes {
-  LoadSafeLists = '[SafeList] Load SafeLists',
+  LoadUserSafes = '[User] Load SafeLists',
+  LoadSafeAfterUserAddItem = '[User] Load SafeLists On Items Change',
+  LoadAdminSafes = '[Admin] Load SafeLists',
   LoadSafeListsSuccess = '[SafeList] Load SafeLists Success',
   LoadSafeListsFailure = '[SafeList] Load SafeLists Failure'
 }
 
-export class LoadSafeLists implements Action {
-  readonly type = SafeListActionTypes.LoadSafeLists;
+export class LoadUserSafes implements Action {
+  readonly type = SafeListActionTypes.LoadUserSafes;
+}
+export class LoadAdminSafes implements Action {
+  readonly type = SafeListActionTypes.LoadAdminSafes;
+}
+export class LoadSafeAfterUserAddItem implements Action {
+  readonly type = SafeListActionTypes.LoadSafeAfterUserAddItem;
 }
 export class LoadSafeListsSuccess implements Action {
   readonly type = SafeListActionTypes.LoadSafeListsSuccess;
@@ -18,4 +26,4 @@ export class LoadSafeListsFailure implements Action {
   readonly type = SafeListActionTypes.LoadSafeListsFailure;
 }
 
-export type SafeListActions = LoadSafeLists | LoadSafeListsSuccess | LoadSafeListsFailure;
+export type SafeListActions = LoadSafeAfterUserAddItem |  LoadUserSafes | LoadAdminSafes | LoadSafeListsSuccess | LoadSafeListsFailure;

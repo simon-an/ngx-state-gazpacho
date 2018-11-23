@@ -14,7 +14,9 @@ export const initialState: State = {
 
 export function reducer(state = initialState, action: SafeListActions): State {
   switch (action.type) {
-    case SafeListActionTypes.LoadSafeLists:
+    case SafeListActionTypes.LoadUserSafes:
+    case SafeListActionTypes.LoadAdminSafes:
+    case SafeListActionTypes.LoadSafeAfterUserAddItem:
       return { ...state, pending: true };
     case '[SafeList] Load SafeLists Success':
       return { safes: [...action.payload.safes], pending: false };

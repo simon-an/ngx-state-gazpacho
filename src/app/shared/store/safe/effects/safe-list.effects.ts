@@ -4,9 +4,8 @@ import { SafeListActionTypes } from '../actions/safe-list.actions';
 
 @Injectable()
 export class SafeListEffects {
-
   @Effect()
-  loadFoos$ = this.actions$.pipe(ofType(SafeListActionTypes.LoadSafeLists));
+  loadFoos$ = this.actions$.pipe(ofType(SafeListActionTypes.LoadUserSafes, SafeListActionTypes.LoadAdminSafes));
 
   constructor(private actions$: Actions) {}
 }
