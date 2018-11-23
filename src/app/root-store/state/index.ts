@@ -1,3 +1,4 @@
+import { storeFreeze } from 'ngrx-store-freeze';
 import {
   ActionReducer,
   ActionReducerMap,
@@ -16,4 +17,4 @@ export const reducers: ActionReducerMap<State> = {
 };
 
 
-export const metaReducers: MetaReducer<State>[] = !environment.production ? [] : [];
+export const metaReducers: MetaReducer<State>[] = !environment.production ? [storeFreeze] : [];
