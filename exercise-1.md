@@ -33,4 +33,20 @@ ng generate @ngrx/schematics:store State --statePath root-store/state --root --m
 ng g @ngrx/schematics:feature root-store/SafeItems --flat --group --reducers root-state/state/index.ts
 ```
 
+Result:
+```
+λ tree -L 3 src\app\root-store\                       
+src\app\root-store\                                   
+|-- actions                                           
+|   `-- safe-items.actions.ts                         
+|-- effects                                           
+|   |-- safe-items.effects.spec.ts                    
+|   `-- safe-items.effects.ts                         
+|-- reducers                                          
+|   |-- safe-items.reducer.spec.ts                    
+|   `-- safe-items.reducer.ts                         
+|-- root-store.module.ts                              
+`-- state                                             
+    `-- index.ts                                      
+```
 
