@@ -91,13 +91,17 @@ import { Action } from '@ngrx/store';
 import { Safe } from '~core/model';
 
 export enum SafeListActionTypes {
-  LoadSafeLists = '[SafeList] Load SafeLists',
+  LoadUserSafes = '[User] Load SafeLists',
+  LoadAdminSafes = '[Admin] Load SafeLists',
   LoadSafeListsSuccess = '[SafeList] Load SafeLists Success',
   LoadSafeListsFailure = '[SafeList] Load SafeLists Failure'
 }
 
-export class LoadSafeLists implements Action {
-  readonly type = SafeListActionTypes.LoadSafeLists;
+export class LoadUserSafes implements Action {
+  readonly type = SafeListActionTypes.LoadUserSafes;
+}
+export class LoadAdminSafes implements Action {
+  readonly type = SafeListActionTypes.LoadAdminSafes;
 }
 export class LoadSafeListsSuccess implements Action {
   readonly type = SafeListActionTypes.LoadSafeListsSuccess;
@@ -107,8 +111,7 @@ export class LoadSafeListsFailure implements Action {
   readonly type = SafeListActionTypes.LoadSafeListsFailure;
 }
 
-export type SafeListActions = LoadSafeLists | LoadSafeListsSuccess | LoadSafeListsFailure;
-
+export type SafeListActions = LoadUserSafes | LoadAdminSafes | LoadSafeListsSuccess | LoadSafeListsFailure;
 ```
 
 shared/store/safe/reducers/safe-list.reducer.ts
@@ -130,7 +133,8 @@ export const initialState: State = {
 
 export function reducer(state = initialState, action: SafeListActions): State {
   switch (action.type) {
-    case SafeListActionTypes.LoadSafeLists:
+    case SafeListActionTypes.LoadUserSafes:
+    case SafeListActionTypes.LoadAdminSafes:
       return { ...state, pending: true };
     case '[SafeList] Load SafeLists Success':
       return { safes: [...action.payload.safes], pending: false };
@@ -141,35 +145,135 @@ export function reducer(state = initialState, action: SafeListActions): State {
   }
 }
 
-```
-### 1,6  Subscribe to State
 
-user/container/userhome/userhome.component.ts
-hint:
+```
+### 1.6  Subscribe to State
+
+- create selector in shared/store/safe/selectors/safe-list.selector.ts
 
 ```typescript
-  constructor(private store: Store<State>) {}
+import {
+  createFeatureSelector,
+  createSelector,
+} from '@ngrx/store';
+import * as fromSafeList from '../reducers/safe-list.reducer';
+import * as fromSafe from '../state';
 
-  ngOnInit() {
-    this.safes$ = this.store.pipe(select());
-  }
+
+export const selectSafeFeature = createFeatureSelector('safe');
+export const selectSafeList = createSelector(
+  selectSafeFeature,
+  (state: fromSafe.State) => state.safeList
+);
+
+export const selectSafes = createSelector(
+  selectSafeList,
+  (state: fromSafeList.State) => state.safes
+);
+
+export const selectSafesLoading = createSelector(
+  selectSafeList,
+  (state: fromSafeList.State) => state.pending
+);
+
 ```
 
+
+user/container/userhome/userhome.component.ts
+- hint: dont remove safe service from constructor, to make sure it is provided.
+
+```typescript
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Safe, SafeService } from 'app/core';
+import { Observable } from 'rxjs';
+import { Store, select } from '@ngrx/store';
+import { State } from '~shared/store/safe/state';
+import { selectSafesLoading, selectSafes } from '~shared/store/safe/selectors/safe-list.selector';
+import { LoadUserSafes } from '~shared/store/safe/actions/safe-list.actions';
+
+@Component({
+  templateUrl: './userhome.component.html',
+  styleUrls: ['./userhome.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class UserHomeComponent implements OnInit {
+  safes$: Observable<Safe[]>;
+  pending$: Observable<boolean>;
+
+  constructor(private store: Store<State>, private safeService: SafeService) {}
+
+  ngOnInit() {
+    this.pending$ = this.store.pipe(select(selectSafesLoading));
+    this.safes$ = this.store.pipe(select(selectSafes));
+    this.store.dispatch(new LoadUserSafes());
+  }
+}
+
+```
+
+
+No Safes are loaded yet. So lets add a Spinner.
 
 ### 1.7 Create Spinner
 
+add to userhome.component.html
+
+```html
+<mat-spinner *ngIf="pending$| async"></mat-spinner>
+```
+
+### 1.8 Modify safes in store
+
+- remove the safe state from SafeService
+- remove the getSafes method from SafeService
+- change the getSafe method in SaveService to subsrcibe to safes in store.
+
+```typescript
+getSafe(safeId: string): Observable<Safe> {
+  return this.store.pipe(select(selectSafes), map(safes1 => safes1.find(safe => safe.id === safeId)));
+}
+```
+
+- in refreshItems2 trigger a LoadSaves
+
+```typescript
+this.store.dispatch(new LoadSafeAfterUserAddItem());
+```
+
+- Fix admin-safes-resolver.service.ts
+hint: dont remove safe service from constructor, to make sure it is provided.
+
+```typescript
+import { Safe } from '~core/model';
+import { SafeService } from '~core/services';
+import { Injectable } from '@angular/core';
+import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { Observable } from 'rxjs';
+import { Store, select } from '@ngrx/store';
+import { selectSafes } from '~shared/store/safe/selectors/safe-list.selector';
+import { LoadAdminSafes } from '~shared/store/safe/actions/safe-list.actions';
+import { State } from 'app/root-store/state';
+import { take, filter, tap } from 'rxjs/operators';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AdminSafesResolverService implements Resolve<Safe[]> {
+  constructor(private store: Store<State>, safeService: SafeService) {}
+
+  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<any> | Promise<any> | any {
+    this.store.dispatch(new LoadAdminSafes());
+    return this.store.pipe(
+      select(selectSafes),
+      filter(data => !!data && data.length > 0),
+      take(1),
+      tap((data => console.log('AdminSafesResolverService', data))
+    );
+  }
+}
 
 
-
-
-
-
-
-
-
-
-
-
+```
 
 
 
