@@ -1,6 +1,6 @@
 #  Exercise 1 - Implement SafeItem Actions and Reducer
 
-## 1. Install schematics
+## 1.1 Install schematics
 
 <https://github.com/ngrx/platform/tree/master/docs/schematics>
 
@@ -19,7 +19,7 @@ WINDOWS
 npm install @ngrx/store @ngrx/effects @ngrx/entity @ngrx/store-devtools -S
 ```
 
-## 2. Generate the Store
+## 1.2 Generate the Store
 
 ```bash
 ng g module root-store —-flat false —-module app.module.ts
@@ -27,10 +27,10 @@ ng generate @ngrx/schematics:store State --statePath root-store/state --root --m
 
 ```
 
-## 3. Add feature SafeItems
+## 1.3 Add feature SafeItems
 
 ```bash
-ng g @ngrx/schematics:feature root-store/SafeItems --flat --group --reducers root-state/state/index.ts
+ng g @ngrx/schematics:feature root-store/SafeItems --flat --group --reducers state/index.ts
 ```
 
 Result:
@@ -50,7 +50,7 @@ src\app\root-store\
     `-- index.ts                                      
 ```
 
-## 4. Add Metareducer Store Freeze, to detect shared state errors during development
+## 1.4 Add Metareducer Store Freeze, to detect shared state errors during development
 - Only needed with ngrx6. When ngrx7 is released it will be included.
 
 ```bash
@@ -59,5 +59,15 @@ src\app\root-store\
 
 add to root-store/state/index.ts
 ```typescript
+import { storeFreeze } from 'ngrx-store-freeze';
+...
 export const metaReducers: MetaReducer<State>[] = !environment.production ? [storeFreeze] : [];
 ```
+
+### 1.5 Implement Load SafeItems Action
+
+```bash
+
+```
+
+
