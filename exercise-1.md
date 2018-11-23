@@ -30,24 +30,23 @@ ng generate @ngrx/schematics:store State --statePath root-store/state --root --m
 ## 1.3 Add feature SafeItems
 
 ```bash
-ng g @ngrx/schematics:feature root-store/SafeItems --flat --group --reducers state/index.ts
+ng g @ngrx/schematics:feature root-store/SafeItem --flat --group --reducers state/index.ts
 ```
 
 Result:
 ```
-λ tree -L 3 src\app\root-store\                       
-src\app\root-store\                                   
-|-- actions                                           
-|   `-- safe-items.actions.ts                         
-|-- effects                                           
-|   |-- safe-items.effects.spec.ts                    
-|   `-- safe-items.effects.ts                         
-|-- reducers                                          
-|   |-- safe-items.reducer.spec.ts                    
-|   `-- safe-items.reducer.ts                         
-|-- root-store.module.ts                              
-`-- state                                             
-    `-- index.ts                                      
+src\app\root-store\                          
+├── actions                                  
+│   └── safe-item.actions.ts                 
+├── effects                                  
+│   ├── safe-item.effects.spec.ts            
+│   └── safe-item.effects.ts                 
+├── reducers                                 
+│   ├── safe-item.reducer.spec.ts            
+│   └── safe-item.reducer.ts                 
+├── root-store.module.ts                     
+└── state                                    
+    └── index.ts                                                                
 ```
 
 ## 1.4 Add Metareducer Store Freeze, to detect shared state errors during development
