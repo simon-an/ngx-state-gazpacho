@@ -241,6 +241,8 @@ this.store.dispatch(new LoadSafeAfterUserAddItem());
 ```
 
 - Fix admin-safes-resolver.service.ts
+hint: use store LodaAdminSafes Action and subscribe to state.
+hint: make sure you return a cold observable as a result of resolve()
 hint: dont remove safe service from constructor, to make sure it is provided.
 
 ```typescript
@@ -275,7 +277,77 @@ export class AdminSafesResolverService implements Resolve<Safe[]> {
 
 ```
 
+- Safe Service Solution
 
+```typescript
+import { Injectable } from '@angular/core';
+import { Safe, SafeItem } from '../model';
+import { Observable, Subject, BehaviorSubject, timer, interval, ReplaySubject, of } from 'rxjs';
+import { map, switchMap, switchMapTo, tap, concatMapTo, take, startWith, shareReplay, filter, catchError, delay } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { Store, select } from '@ngrx/store';
+import { selectSafes, selectSafesLoading } from '~shared/store/safe/selectors/safe-list.selector';
+import { LoadSafeListsSuccess, LoadSafeAfterUserAddItem, LoadSafeListsFailure } from '~shared/store/safe/actions/safe-list.actions';
+import { State } from 'app/root-store/state';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class SafeService {
+  private readonly safesUrl = '/api/safes';
+  private readonly itemsUrl = '/api/items';
+
+  private items: ReplaySubject<SafeItem[]> = new ReplaySubject<SafeItem[]>();
+  constructor(private http: HttpClient, private store: Store<State>) {
+
+    store
+      .pipe(
+        select(selectSafesLoading),
+        filter(Boolean),
+        switchMapTo(this.loadSafes()),
+        catchError(err =>  {
+          this.store.dispatch(new LoadSafeListsFailure());
+          return of(null);
+        }),
+        filter(Boolean),
+        delay(2000)
+      )
+      .subscribe(safes => this.store.dispatch(new LoadSafeListsSuccess({safes: safes})));
+  }
+
+  getSafe(safeId: string): Observable<Safe> {
+    return this.store.pipe(select(selectSafes), map(safes1 => safes1.find(safe => safe.id === safeId)));
+  }
+
+  loadSafes(): Observable<Safe[]> {
+    return this.http.get(this.safesUrl).pipe(map((safes: Safe[]) => safes));
+  }
+
+  addItem(item: SafeItem, safeId: string): Observable<SafeItem> {
+    console.log(item, safeId, this.http);
+    // const newItems = [...this.items.getValue(), item];
+    // this.items.next(newItems);
+    return this.http.post(this.safesUrl + `/${safeId}/items`, item).pipe(
+      map((response: SafeItem) => response),
+      tap(x => this.store.dispatch(new LoadSafeAfterUserAddItem()))
+      // tap(item => this.refreshItems(safeId)),
+      // tap(response => this.refreshItems2(response)),
+      // take(1)
+    );
+  }
+
+  getItems(safeId: string): Observable<SafeItem[]> {
+    const result$ = this.http.get(this.safesUrl + `/${safeId}/items`).pipe(
+      map((items: SafeItem[]) => items),
+      shareReplay(1)
+    );
+    result$.subscribe(this.items);
+    return result$;
+  }
+
+}
+
+```
 
 
 @Deprecated
@@ -297,26 +369,35 @@ root-store/actions/safe-item.actions.ts
 
 ```typescript
 import { Action } from '@ngrx/store';
-import { SafeItem } from '~core/model';
+import { Safe } from '~core/model';
 
-export enum SafeItemActionTypes {
-  LoadSafeItems = '[SafeItem] Load SafeItems',
-  LoadSafeItemsSuccess = '[SafeItem] Load SafeItems Success',
-  LoadSafeItemsFailure = '[SafeItem] Load SafeItems Failure'
-}
-
-export class LoadSafeItems implements Action {
-  readonly type = SafeItemActionTypes.LoadSafeItems;
-}
-export class LoadSafeItemsSuccess implements Action {
-  readonly type = SafeItemActionTypes.LoadSafeItemsSuccess;
-  constructor(public payload: { items: SafeItem[] }) {}
-}
-export class LoadSafeItemsFailure implements Action {
-  readonly type = SafeItemActionTypes.LoadSafeItemsFailure;
+export enum SafeListActionTypes {
+  LoadUserSafes = '[User] Load SafeLists',
+  LoadSafeAfterUserAddItem = '[User] Load SafeLists On Items Change',
+  LoadAdminSafes = '[Admin] Load SafeLists',
+  LoadSafeListsSuccess = '[SafeList] Load SafeLists Success',
+  LoadSafeListsFailure = '[SafeList] Load SafeLists Failure'
 }
 
-export type SafeItemActions = LoadSafeItems | LoadSafeItemsSuccess | LoadSafeItemsFailure;
+export class LoadUserSafes implements Action {
+  readonly type = SafeListActionTypes.LoadUserSafes;
+}
+export class LoadAdminSafes implements Action {
+  readonly type = SafeListActionTypes.LoadAdminSafes;
+}
+export class LoadSafeAfterUserAddItem implements Action {
+  readonly type = SafeListActionTypes.LoadSafeAfterUserAddItem;
+}
+export class LoadSafeListsSuccess implements Action {
+  readonly type = SafeListActionTypes.LoadSafeListsSuccess;
+  constructor(public payload: { safes: Safe[] }) {}
+}
+export class LoadSafeListsFailure implements Action {
+  readonly type = SafeListActionTypes.LoadSafeListsFailure;
+}
+
+export type SafeListActions = LoadSafeAfterUserAddItem |  LoadUserSafes | LoadAdminSafes | LoadSafeListsSuccess | LoadSafeListsFailure;
+
 
 
 ```
@@ -324,31 +405,35 @@ export type SafeItemActions = LoadSafeItems | LoadSafeItemsSuccess | LoadSafeIte
 root-store/reducers/safe-item.reducer.ts
 
 ```typescript
-import { SafeItemActions, SafeItemActionTypes } from '../actions/safe-item.actions';
-import { SafeItem } from '~core/model';
+import { Action } from '@ngrx/store';
+import { SafeListActions, SafeListActionTypes } from '../actions/safe-list.actions';
+import { Safe } from '~core/model';
 
 export interface State {
+  safes: Safe[];
   pending: boolean;
-  items: SafeItem[];
 }
 
 export const initialState: State = {
-  pending: false,
-  items: []
+  safes: [],
+  pending: false
 };
 
-export function reducer(state = initialState, action: SafeItemActions): State {
+export function reducer(state = initialState, action: SafeListActions): State {
   switch (action.type) {
-    case '[SafeItem] Load SafeItems':
-      return state;
-    case '[SafeItem] Load SafeItems Success':
-      return state;
-    case SafeItemActionTypes.LoadSafeItemsFailure:
-      return state;
+    case SafeListActionTypes.LoadUserSafes:
+    case SafeListActionTypes.LoadAdminSafes:
+    case SafeListActionTypes.LoadSafeAfterUserAddItem:
+      return { ...state, pending: true };
+    case '[SafeList] Load SafeLists Success':
+      return { safes: [...action.payload.safes], pending: false };
+    case SafeListActionTypes.LoadSafeListsFailure:
+      return { ...state, pending: false };
     default:
       return state;
   }
 }
+
 
 ```
 
