@@ -1,4 +1,4 @@
-# Setup NGRX Store
+#  Exercise 1 - Implement SafeItem Actions and Reducer
 
 ## 1. Install schematics
 
@@ -22,10 +22,15 @@ npm install @ngrx/store @ngrx/effects @ngrx/entity @ngrx/store-devtools -S
 ## 2. Generate the Store
 
 ```bash
-ng generate @ngrx/schematics:store State --root --module core.module.ts
+ng g module root-store —-flat false —-module app.module.ts
+ng generate @ngrx/schematics:store State --statePath root-store/state --root --module root-store/root-store.module.ts
 
 ```
 
-## 3. Add feature items
+## 3. Add feature SafeItems
 
-### 3.1  
+```bash
+ng g @ngrx/schematics:feature root-store/SafeItems --flat --group --reducers root-state/state/index.ts
+```
+
+
