@@ -30,6 +30,8 @@ import { SafeListComponent } from './components/safe-list/safe-list.component';
 import { SafeComponent } from './container/safe/safe.component';
 import { ItemListComponent } from './components/item-list/item-list.component';
 import { TranslateModule } from '@ngx-translate/core';
+import { StoreModule } from '@ngrx/store';
+import * as fromSafe from './store/safe/state';
 
 @NgModule({
   imports: [
@@ -50,7 +52,8 @@ import { TranslateModule } from '@ngx-translate/core';
     MatRadioModule,
     MatCardModule,
     MatTooltipModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    StoreModule.forFeature('safe', fromSafe.reducers, { metaReducers: fromSafe.metaReducers }),
   ],
   declarations: [
     HeaderWithSidenavComponent,
