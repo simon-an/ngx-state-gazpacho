@@ -22,6 +22,6 @@ export class AdminSafesResolverService implements Resolve<Safe[]> {
       filter(data => !!data && data.length > 0),
       take(1),
       tap((data => console.log('AdminSafesResolverService', data))
-    );
+    ));
   }
 }
