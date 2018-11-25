@@ -23,7 +23,7 @@ import {
   LoadSafeListsFailure
 } from '~shared/store/safe/actions/safe-list.actions';
 import { State } from 'app/root-store/state';
-import { LoadSafeItems } from '~shared/store/safe/actions/safe-item.actions';
+import { LoadSafeItems, AddSafeItems } from '~shared/store/safe/actions/safe-item.actions';
 
 @Injectable({
   providedIn: 'root'
@@ -62,7 +62,7 @@ export class SafeService {
   getItems(safeId: string): Observable<SafeItem[]> {
     const result$ = this.http.get(this.safesUrl + `/${safeId}/items`).pipe(
       map((items: SafeItem[]) => items),
-      tap((items: SafeItem[]) => this.store.dispatch(new LoadSafeItems({ safeItems: items }))),
+      tap((items: SafeItem[]) => this.store.dispatch(new AddSafeItems({ safeId: safeId, safeItems: items }))),
       shareReplay(1)
     );
     return result$;

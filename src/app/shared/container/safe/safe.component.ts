@@ -1,11 +1,15 @@
 import { Component, OnInit, ChangeDetectionStrategy, Input } from '@angular/core';
 import { ActivatedRoute, ParamMap } from '@angular/router';
-import { switchMap, map, withLatestFrom, switchMapTo } from 'rxjs/operators';
+import { switchMap, map, withLatestFrom, switchMapTo, tap } from 'rxjs/operators';
 import { Observable, merge, Subject } from 'rxjs';
 import { Safe, SafeItem } from '~core/model';
 import { SafeService, FileService } from '~core/services';
 import { AddSafeItemDialogComponent } from '../add-safe-item-dialog';
 import { MatDialog } from '@angular/material';
+import { select, Store } from '@ngrx/store';
+import { State } from 'app/root-store/state';
+import { selectItemsBySafeId } from '~shared/store/safe/selectors/safeitem.selector';
+import { LoadSafeItems } from '~shared/store/safe/actions/safe-item.actions';
 
 @Component({
   selector: 'cool-safe',
@@ -23,6 +27,7 @@ export class SafeComponent implements OnInit {
     private fileService: FileService,
     private activatedRoute: ActivatedRoute,
     private service: SafeService,
+    private store: Store<State>,
     private dialog: MatDialog
   ) {}
 
@@ -41,10 +46,15 @@ export class SafeComponent implements OnInit {
       })
     );
 
+    // this.items$ = merge(this.safe$, this.trigger$).pipe(
+    //   withLatestFrom(this.safe$),
+    //   switchMap(([trigger, safe]: [any, Safe]) => this.service.getItems(safe.id))
+    // );
     this.items$ = merge(this.safe$, this.trigger$).pipe(
       withLatestFrom(this.safe$),
-      switchMap(([trigger, safe]: [any, Safe]) => this.service.getItems(safe.id))
+      tap(([trigger, safe]: [any, Safe]) => this.store.dispatch(new LoadSafeItems({ safeId: safe.id })))
     );
+    this.items$ = this.store.pipe(select(selectItemsBySafeId));
   }
 
   openInvoice(id: string) {
