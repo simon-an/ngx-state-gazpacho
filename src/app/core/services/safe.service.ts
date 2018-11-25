@@ -23,15 +23,14 @@ import {
   LoadSafeListsFailure
 } from '~shared/store/safe/actions/safe-list.actions';
 import { State } from 'app/root-store/state';
+import { LoadSafeItems } from '~shared/store/safe/actions/safe-item.actions';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SafeService {
   private readonly safesUrl = '/api/safes';
-  private readonly itemsUrl = '/api/items';
 
-  private items: ReplaySubject<SafeItem[]> = new ReplaySubject<SafeItem[]>();
   constructor(private http: HttpClient, private store: Store<State>) {
     store
       .pipe(
@@ -54,23 +53,18 @@ export class SafeService {
 
   addItem(item: SafeItem, safeId: string): Observable<SafeItem> {
     console.log(item, safeId, this.http);
-    // const newItems = [...this.items.getValue(), item];
-    // this.items.next(newItems);
     return this.http.post(this.safesUrl + `/${safeId}/items`, item).pipe(
       map((response: SafeItem) => response),
       tap(x => this.store.dispatch(new LoadSafeAfterUserAddItem()))
-      // tap(item => this.refreshItems(safeId)),
-      // tap(response => this.refreshItems2(response)),
-      // take(1)
     );
   }
 
   getItems(safeId: string): Observable<SafeItem[]> {
     const result$ = this.http.get(this.safesUrl + `/${safeId}/items`).pipe(
       map((items: SafeItem[]) => items),
+      tap((items: SafeItem[]) => this.store.dispatch(new LoadSafeItems({ safeItems: items }))),
       shareReplay(1)
     );
-    result$.subscribe(this.items);
     return result$;
   }
 }
