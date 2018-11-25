@@ -8,15 +8,18 @@ export interface RouterStateUrl {
 }
 
 export class CustomSerializer implements RouterStateSerializer<RouterStateUrl> {
-  constructor() {
-    console.log('hello wolrd');
-  }
+  constructor() {}
 
   serialize(routerState: RouterStateSnapshot): RouterStateUrl {
     let route = routerState.root;
 
-    while (route.firstChild) {
-      route = route.firstChild;
+    while (route.children.length > 0) {
+      if (route.children.length > 1) {
+        route = route.children.find(r => (!!r.params && !!r.params.id) || r.outlet === 'secondary');
+      }
+      if (!route || route.children.length === 1) {
+        route = route.firstChild;
+      }
     }
 
     const {

@@ -1,11 +1,27 @@
 import { Injectable } from '@angular/core';
 import { Safe, SafeItem } from '../model';
 import { Observable, Subject, BehaviorSubject, timer, interval, ReplaySubject, of } from 'rxjs';
-import { map, switchMap, switchMapTo, tap, concatMapTo, take, startWith, shareReplay, filter, catchError, delay } from 'rxjs/operators';
+import {
+  map,
+  switchMap,
+  switchMapTo,
+  tap,
+  concatMapTo,
+  take,
+  startWith,
+  shareReplay,
+  filter,
+  catchError,
+  delay
+} from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { Store, select } from '@ngrx/store';
 import { selectSafes, selectSafesLoading } from '~shared/store/safe/selectors/safe-list.selector';
-import { LoadSafeListsSuccess, LoadSafeAfterUserAddItem, LoadSafeListsFailure } from '~shared/store/safe/actions/safe-list.actions';
+import {
+  LoadSafeListsSuccess,
+  LoadSafeAfterUserAddItem,
+  LoadSafeListsFailure
+} from '~shared/store/safe/actions/safe-list.actions';
 import { State } from 'app/root-store/state';
 
 @Injectable({
@@ -17,24 +33,19 @@ export class SafeService {
 
   private items: ReplaySubject<SafeItem[]> = new ReplaySubject<SafeItem[]>();
   constructor(private http: HttpClient, private store: Store<State>) {
-
     store
       .pipe(
         select(selectSafesLoading),
         filter(Boolean),
         switchMapTo(this.loadSafes()),
-        catchError(err =>  {
+        catchError(err => {
           this.store.dispatch(new LoadSafeListsFailure());
           return of(null);
         }),
         filter(Boolean),
         delay(2000)
       )
-      .subscribe(safes => this.store.dispatch(new LoadSafeListsSuccess({safes: safes})));
-  }
-
-  getSafe(safeId: string): Observable<Safe> {
-    return this.store.pipe(select(selectSafes), map(safes1 => safes1.find(safe => safe.id === safeId)));
+      .subscribe(safes => this.store.dispatch(new LoadSafeListsSuccess({ safes: safes })));
   }
 
   loadSafes(): Observable<Safe[]> {
@@ -62,5 +73,4 @@ export class SafeService {
     result$.subscribe(this.items);
     return result$;
   }
-
 }
