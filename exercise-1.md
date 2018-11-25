@@ -349,91 +349,128 @@ export class SafeService {
 
 ```
 
+### 1.9 Add Router-State to root-store
 
-@Deprecated
-### 1.5 Implement Load SafeItems Action
+- add @ngrx/router-store
 
-- State will look like this.
-
-```typescript
-export interface State {
-  pending: boolean;
-  items: SafeItem[];
-}
-
+```bash
+npm i -S @ngrx/router-store
 ```
 
-- Add two more Actions: LoadSageItemSuccess and LoadSafeItemsFailure.
-
-root-store/actions/safe-item.actions.ts
+- custom serializer for secondary router state root-store/router-serializer.ts
 
 ```typescript
-import { Action } from '@ngrx/store';
-import { Safe } from '~core/model';
+import { Params, RouterStateSnapshot } from '@angular/router';
+import { RouterStateSerializer } from '@ngrx/router-store';
 
-export enum SafeListActionTypes {
-  LoadUserSafes = '[User] Load SafeLists',
-  LoadSafeAfterUserAddItem = '[User] Load SafeLists On Items Change',
-  LoadAdminSafes = '[Admin] Load SafeLists',
-  LoadSafeListsSuccess = '[SafeList] Load SafeLists Success',
-  LoadSafeListsFailure = '[SafeList] Load SafeLists Failure'
+export interface RouterStateUrl {
+  url: string;
+  params: Params;
+  queryParams: Params;
 }
 
-export class LoadUserSafes implements Action {
-  readonly type = SafeListActionTypes.LoadUserSafes;
-}
-export class LoadAdminSafes implements Action {
-  readonly type = SafeListActionTypes.LoadAdminSafes;
-}
-export class LoadSafeAfterUserAddItem implements Action {
-  readonly type = SafeListActionTypes.LoadSafeAfterUserAddItem;
-}
-export class LoadSafeListsSuccess implements Action {
-  readonly type = SafeListActionTypes.LoadSafeListsSuccess;
-  constructor(public payload: { safes: Safe[] }) {}
-}
-export class LoadSafeListsFailure implements Action {
-  readonly type = SafeListActionTypes.LoadSafeListsFailure;
-}
+export class CustomSerializer implements RouterStateSerializer<RouterStateUrl> {
+  constructor() {}
 
-export type SafeListActions = LoadSafeAfterUserAddItem |  LoadUserSafes | LoadAdminSafes | LoadSafeListsSuccess | LoadSafeListsFailure;
+  serialize(routerState: RouterStateSnapshot): RouterStateUrl {
+    let route = routerState.root;
 
+    while (route.children.length > 0) {
+      if (route.children.length > 1) {
+        route = route.children.find(r => (!!r.params && !!r.params.id) || r.outlet === 'secondary');
+      }
+      if (!route || route.children.length === 1) {
+        route = route.firstChild;
+      }
+    }
 
+    const {
+      url,
+      root: { queryParams }
+    } = routerState;
+    const { params } = route;
 
-```
-
-root-store/reducers/safe-item.reducer.ts
-
-```typescript
-import { Action } from '@ngrx/store';
-import { SafeListActions, SafeListActionTypes } from '../actions/safe-list.actions';
-import { Safe } from '~core/model';
-
-export interface State {
-  safes: Safe[];
-  pending: boolean;
-}
-
-export const initialState: State = {
-  safes: [],
-  pending: false
-};
-
-export function reducer(state = initialState, action: SafeListActions): State {
-  switch (action.type) {
-    case SafeListActionTypes.LoadUserSafes:
-    case SafeListActionTypes.LoadAdminSafes:
-    case SafeListActionTypes.LoadSafeAfterUserAddItem:
-      return { ...state, pending: true };
-    case '[SafeList] Load SafeLists Success':
-      return { safes: [...action.payload.safes], pending: false };
-    case SafeListActionTypes.LoadSafeListsFailure:
-      return { ...state, pending: false };
-    default:
-      return state;
+    // Only return an object including the URL, params and query params
+    // instead of the entire snapshot
+    return { url, params, queryParams };
   }
 }
 
 
 ```
+
+- add to root-store.module.ts
+
+```typescript
+...
+
+imports: [
+...
+  StoreRouterConnectingModule.forRoot({
+        stateKey: 'router'
+  })
+],
+
+...
+
+providers: [{ provide: RouterStateSerializer, useClass: CustomSerializer }]
+
+```
+- Add the router state selector and router reducert to root-store/state.index.ts
+add routerReducer to ActionReducerMap
+add selector for router state
+```
+export const reducers: ActionReducerMap<State> = {
+  router: routerReducer
+};
+...
+export const getRouterState = createFeatureSelector<RouterReducerState<RouterStateUrl>>('router');
+...
+```
+
+### 1.10 Resolver should use selector to get SafeById from Store
+
+- remove getSafe() from safe.service.ts 
+- replace call of getSafe() in core/services/safe-resolver.service.ts with
+```typescript
+select(selectSafeById)
+```
+
+Selector Solution:
+```typescript
+import { createFeatureSelector, createSelector } from '@ngrx/store';
+import * as fromSafeList from '../reducers/safe-list.reducer';
+import * as fromSafe from '../state';
+import { getRouterState } from 'app/root-store/state';
+import { Safe } from '~core/model';
+
+export const selectSafeFeature = createFeatureSelector('safe');
+export const selectSafeList = createSelector(
+  selectSafeFeature,
+  (state: fromSafe.State) => state.safeList
+);
+
+export const selectSafes = createSelector(
+  selectSafeList,
+  (state: fromSafeList.State) => state.safes
+);
+
+export const selectSafesLoading = createSelector(
+  selectSafeList,
+  (state: fromSafeList.State) => state.pending
+);
+
+export const selectSafeById = createSelector(
+  selectSafes,
+  getRouterState,
+  (safes: Safe[], routerState) => {
+    // bad: this is why we want to use entities
+    // console.log('selectSafeById', safes, routerState.state);
+    return safes.find(safe => safe.id === routerState.state.params['id']);
+  }
+);
+
+
+```
+
 
