@@ -21,6 +21,7 @@ tap((items: SafeItem[]) => this.store.dispatch(new LoadSafeItems({ safeItems: it
 
 <details><summary>SafeService Solution</summary>
 
+```typescript
 import { Injectable } from '@angular/core';
 import { Safe, SafeItem } from '../model';
 import { Observable, Subject, BehaviorSubject, timer, interval, ReplaySubject, of } from 'rxjs';
@@ -91,6 +92,7 @@ export class SafeService {
     return result$;
   }
 }
+```
 
 </details>
 
