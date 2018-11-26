@@ -31,13 +31,12 @@ export function reducer(state = initialState, action: SafeItemActions): State {
     case SafeItemActionTypes.AddSafeItems: {
       const updatedMap = {
         ...state.safeItemMap,
-        ...action.payload.safeItems
-          .map(i => i.id)
-          .map(i => {
-            return { i: action.payload.safeId };
-          })
+        ...action.payload.safeItems.reduce(function(filtered, item: SafeItem) {
+          filtered[item.id] = action.payload.safeId;
+          return filtered;
+        }, {})
       };
-      const updatedState = { ...state, updatedMap, loading: false };
+      const updatedState: State = { ...state, safeItemMap: updatedMap, loading: false } as State;
       return adapter.addMany(action.payload.safeItems, updatedState);
     }
 
