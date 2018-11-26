@@ -287,4 +287,4 @@ export const selectSafeFeature = createFeatureSelector('safe');
 
 - when going to the safe detail page, there are no safeitems yet, but you should see the following events:
 
-![Redux](sceenshots/reduxtools-ex2.jpg)
+![Redux](screenshots/reduxtools-ex2.jpg)
