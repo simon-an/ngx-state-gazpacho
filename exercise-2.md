@@ -1,6 +1,6 @@
 # NGRX Entities
 
-## 1.1 Add SaveItem Entity
+## 2.1 Add SaveItem Entity
 
 ```bash
 ng g @ngrx/schematics:entity shared/store/safe/SafeItem --group --reducers state/index.ts
@@ -96,17 +96,107 @@ export class SafeService {
 
 #### What is the current behavior in the store slice 'safeitem'? What is the expected behavior?
 
-## 1.2  Use the safeitems in the safe.component.ts
+## 2.2  Use the safeitems in the safe.component.ts
 
 - this.items$ = this.store.pipe(select(getSafeItems));
 
 <details><summary>safe.component.ts Solution</summary>
+import { Component, OnInit, ChangeDetectionStrategy, Input } from '@angular/core';
+import { ActivatedRoute, ParamMap } from '@angular/router';
+import { switchMap, map, withLatestFrom, switchMapTo, tap } from 'rxjs/operators';
+import { Observable, merge, Subject } from 'rxjs';
+import { Safe, SafeItem } from '~core/model';
+import { SafeService, FileService } from '~core/services';
+import { AddSafeItemDialogComponent } from '../add-safe-item-dialog';
+import { MatDialog } from '@angular/material';
+import { select, Store } from '@ngrx/store';
+import { State } from 'app/root-store/state';
+import { selectItemsBySafeId } from '~shared/store/safe/selectors/safeitem.selector';
+import { LoadSafeItems } from '~shared/store/safe/actions/safe-item.actions';
+
+@Component({
+  selector: 'cool-safe',
+  templateUrl: './safe.component.html',
+  styleUrls: ['./safe.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class SafeComponent implements OnInit {
+  showAddButton$: Observable<boolean>;
+  safe$: Observable<Safe>;
+  items$: Observable<SafeItem[]>;
+  trigger$: Subject<any> = new Subject<any>();
+
+  constructor(
+    private fileService: FileService,
+    private activatedRoute: ActivatedRoute,
+    private service: SafeService,
+    private store: Store<State>,
+    private dialog: MatDialog
+  ) {}
+
+  ngOnInit() {
+    // Changed in Exercise 9.4.1
+    // this.safe$ = this.activatedRoute.paramMap.pipe(switchMap((params: ParamMap) => this.service.getSafe(params.get('id'))));
+    this.safe$ = this.activatedRoute.data.pipe(
+      map((data: { safe: Safe }) => {
+        return data.safe;
+      })
+    );
+
+    this.showAddButton$ = this.activatedRoute.data.pipe(
+      map((data: { showAddButton: boolean }) => {
+        return data.showAddButton;
+      })
+    );
+
+    // this.items$ = merge(this.safe$, this.trigger$).pipe(
+    //   withLatestFrom(this.safe$),
+    //   switchMap(([trigger, safe]: [any, Safe]) => this.service.getItems(safe.id))
+    // );
+    const itemsReloadEvent$ = merge(this.safe$, this.trigger$).pipe(
+      withLatestFrom(this.safe$),
+      tap(([trigger, safe]: [any, Safe]) => this.store.dispatch(new LoadSafeItems({ safeId: safe.id })))
+    );
+    itemsReloadEvent$.subscribe(() => console.log('items reload event'));
+    this.items$ = this.store.pipe(select(selectItemsBySafeId));
+  }
+
+  openInvoice(id: string) {
+    this.fileService
+      .get(id)
+      .then(image => {
+        // console.log(image);
+        const newTab = window.open();
+        newTab.document.body.innerHTML = '<img src="' + image + '">';
+      })
+      .catch(err => console.error('invoice not found:', id, err));
+  }
+
+  onAddSafeItem(event) {
+    const dialogRef = this.dialog.open(AddSafeItemDialogComponent, {
+      // height: '800px',
+      width: '600px',
+      backdropClass: 'logindialog-overlay',
+      panelClass: 'logindialog-panel'
+    });
+    dialogRef
+      .afterClosed()
+      .pipe(withLatestFrom(this.safe$))
+      .subscribe(([result, safe]) => {
+        if (!!result) {
+          console.log(`Dialog result: ${result}`);
+          const result$ = this.service.addItem(result, safe.id);
+          result$.subscribe(this.trigger$);
+        }
+      });
+  }
+}
 
 </details>
 
 
 
-#### shared/store/safe/reducers/safe-item.reducer.ts
+## 2.3 update shared/store/safe/reducers/safe-item.reducer.ts
 
 - Add aditional State to SafeItem 
 
@@ -144,11 +234,13 @@ case SafeItemActionTypes.AddSafeItems: {
     }
 ```
 
-#### src/app/shared/store/safe/selectors/safeitem.selector.ts
+#### 2.4 create selector to access SafeItems by Safe Id 
 
 - we need a selector to get SafeItems, when the safe changes and the Entities of the safeItem slice in the store changes.
+- hint. create: SelectSafeItemMap, SafeItemsLoading, selectItemsBySafeId and reuse the "fromSafeList.selectSafeById" selector
+- hint. move the adapter default selectors from the safeitem.reducer.ts to the safeitem.selector.ts
 
-
+src/app/shared/store/safe/selectors/safeitem.selector.ts
 
 ```typescript
 import * as fromSafeList from './safe-list.selector';
