@@ -1,9 +1,9 @@
 # NGRX Workshop
 
 - Install Redux tools
-Chrome:
+- Chrome:
 https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd
-Firefox:
+- Firefox:
 https://addons.mozilla.org/de/firefox/addon/remotedev/
 
 [exercise actions reducers selectors](exercise-1.md)
