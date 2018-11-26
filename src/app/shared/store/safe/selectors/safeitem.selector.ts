@@ -5,17 +5,22 @@ import { Safe, SafeItem } from '~core/model';
 import { Dictionary } from '@ngrx/entity';
 import { createSelector, createFeatureSelector } from '@ngrx/store';
 
-export const { selectIds, selectEntities, selectAll, selectTotal } = fromSafeItem.adapter.getSelectors();
-export const selectSafeFeature = createFeatureSelector('safe');
-
-export const SelectSafeItemMap = createSelector(
+export const selectSafeFeature = createFeatureSelector<fromSafe.State>('safe');
+export const selectSafeItemFeature = createSelector(
   selectSafeFeature,
-  (state: fromSafe.State) => state.safeItem.safeItemMap
+  (state: fromSafe.State) => state.safeItem
+);
+export const { selectIds, selectEntities, selectAll, selectTotal } = fromSafeItem.adapter.getSelectors(
+  selectSafeItemFeature
 );
 
+export const SelectSafeItemMap = createSelector(
+  selectSafeItemFeature,
+  (state: fromSafeItem.State) => state.safeItemMap
+);
 export const SafeItemsLoading = createSelector(
-  selectSafeFeature,
-  (state: fromSafe.State) => state.safeItem.loading
+  selectSafeItemFeature,
+  (state: fromSafeItem.State) => state.loading
 );
 
 export const selectItemsBySafeId = createSelector(
@@ -32,7 +37,7 @@ export const selectItemsBySafeId = createSelector(
     //   }
     //   return filtered;
     // }, []);
-    console.log('keys', itemMap, safe.id);
+    console.log('selectItemsBySafeId', entities, itemMap, safe.id);
     const itemKeys: string[] = Object.keys(itemMap).filter(key => itemMap[key] === safe.id);
     return itemKeys.map(key => entities[key]);
   }
