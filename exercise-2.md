@@ -103,6 +103,8 @@ export class SafeService {
 - this.items$ = this.store.pipe(select(getSafeItems));
 
 <details><summary>safe.component.ts Solution</summary>
+  
+```typescript
 import { Component, OnInit, ChangeDetectionStrategy, Input } from '@angular/core';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { switchMap, map, withLatestFrom, switchMapTo, tap } from 'rxjs/operators';
@@ -193,6 +195,7 @@ export class SafeComponent implements OnInit {
       });
   }
 }
+```
 
 </details>
 
