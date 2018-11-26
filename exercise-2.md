@@ -288,3 +288,6 @@ export const selectSafeFeature = createFeatureSelector('safe');
 - when going to the safe detail page, there are no safeitems yet, but you should see the following events:
 
 ![Redux](screenshots/reduxtools-ex2.jpg)
+
+- That the selector for to get the safe items works and is triggered when the safe id route is used to the safe detail page, when can see in the console:
+![Redux](screenshots/console-ex2.jpg)
