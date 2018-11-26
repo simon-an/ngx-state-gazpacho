@@ -100,3 +100,91 @@ export class SafeService {
 
 - this.items$ = this.store.pipe(select(getSafeItems));
 
+<details><summary>safe.component.ts Solution</summary>
+
+</details>
+
+
+
+#### shared/store/safe/reducers/safe-item.reducer.ts
+
+- Add aditional State to SafeItem 
+
+```typescript
+export interface State extends EntityState<SafeItem> {
+  // additional entities state properties
+  safeItemMap: Dictionary<string>;
+  loading: boolean;
+}
+```
+
+- change LoadSafeItems so it sets the loading state to true
+
+```typescript
+case SafeItemActionTypes.LoadSafeItems: {
+    return { ...state, loading: true };
+    // return adapter.addAll(action.payload.safeItems, state);
+}
+```
+
+- change AddSafeItem to safe-item.reducer.ts, so that it adds new safeItems keys to the map safeItemMap contains [safeItemId]=safeId
+
+```typescript
+case SafeItemActionTypes.AddSafeItems: {
+      const updatedMap = {
+        ...state.safeItemMap,
+        ...action.payload.safeItems
+          .map(i => i.id)
+          .map(i => {
+            return { i: action.payload.safeId };
+          })
+      };
+      const updatedState = { ...state, updatedMap, loading: false };
+      return adapter.addMany(action.payload.safeItems, updatedState);
+    }
+```
+
+#### src/app/shared/store/safe/selectors/safeitem.selector.ts
+
+- we need a selector to get SafeItems, when the safe changes and the Entities of the safeItem slice in the store changes.
+
+
+
+```typescript
+import * as fromSafeList from './safe-list.selector';
+import * as fromSafeItem from '../reducers/safe-item.reducer';
+import * as fromSafe from '../state';
+import { Safe, SafeItem } from '~core/model';
+import { Dictionary } from '@ngrx/entity';
+import { createSelector, createFeatureSelector } from '@ngrx/store';
+ export const { selectIds, selectEntities, selectAll, selectTotal } = fromSafeItem.adapter.getSelectors();
+export const selectSafeFeature = createFeatureSelector('safe');
+ export const SelectSafeItemMap = createSelector(
+  selectSafeFeature,
+  (state: fromSafe.State) => state.safeItem.safeItemMap
+);
+ export const SafeItemsLoading = createSelector(
+  selectSafeFeature,
+  (state: fromSafe.State) => state.safeItem.loading
+);
+ export const selectItemsBySafeId = createSelector(
+  fromSafeList.selectSafeById,
+  selectEntities,
+  SelectSafeItemMap,
+  (safe: Safe, entities: Dictionary<SafeItem>, itemMap: Dictionary<string>): SafeItem[] => {
+    // reference in safe
+    // return safe.items.map(id => entities[id]);
+    // reference in items
+    // const filtered2 = Object.keys(entities).reduce(function(filtered, key) {
+    //   if (entities[key].safeId === safe.id) {
+    //     filtered = [...filtered, entities[key]];
+    //   }
+    //   return filtered;
+    // }, []);
+    console.log('keys', itemMap, safe.id);
+    const itemKeys: string[] = Object.keys(itemMap).filter(key => itemMap[key] === safe.id);
+    return itemKeys.map(key => entities[key]);
+  }
+);
+
+```
