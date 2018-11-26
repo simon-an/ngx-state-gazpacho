@@ -1,3 +1,4 @@
+import { EffectsModule } from '@ngrx/effects';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StoreModule } from '@ngrx/store';
@@ -15,7 +16,8 @@ import { CustomSerializer } from './router-serializer';
     !environment.production ? StoreDevtoolsModule.instrument() : [],
     StoreRouterConnectingModule.forRoot({
       stateKey: 'router'
-    })
+    }),
+    EffectsModule.forRoot([])
   ],
   providers: [{ provide: RouterStateSerializer, useClass: CustomSerializer }]
 })
