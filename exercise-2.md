@@ -225,16 +225,15 @@ case SafeItemActionTypes.LoadSafeItems: {
 - change AddSafeItem to safe-item.reducer.ts, so that it adds new safeItems keys to the map safeItemMap contains [safeItemId]=safeId
 
 ```typescript
-case SafeItemActionTypes.AddSafeItems: {
+ case SafeItemActionTypes.AddSafeItems: {
       const updatedMap = {
         ...state.safeItemMap,
-        ...action.payload.safeItems
-          .map(i => i.id)
-          .map(i => {
-            return { i: action.payload.safeId };
-          })
+        ...action.payload.safeItems.reduce(function(filtered, item: SafeItem) {
+          filtered[item.id] = action.payload.safeId;
+          return filtered;
+        }, {})
       };
-      const updatedState = { ...state, updatedMap, loading: false };
+      const updatedState: State = { ...state, safeItemMap: updatedMap, loading: false } as State;
       return adapter.addMany(action.payload.safeItems, updatedState);
     }
 ```
