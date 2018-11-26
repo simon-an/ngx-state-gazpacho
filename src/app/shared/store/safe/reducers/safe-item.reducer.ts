@@ -1,6 +1,8 @@
 import { EntityState, EntityAdapter, createEntityAdapter, Dictionary } from '@ngrx/entity';
 import { SafeItem } from '~core/model';
 import { SafeItemActions, SafeItemActionTypes } from '../actions/safe-item.actions';
+import { createFeatureSelector, createSelector } from '@ngrx/store';
+import * as fromSafe from '../state';
 
 export interface State extends EntityState<SafeItem> {
   // additional entities state properties
@@ -73,5 +75,3 @@ export function reducer(state = initialState, action: SafeItemActions): State {
     }
   }
 }
-
-export const { selectIds, selectEntities, selectAll, selectTotal } = adapter.getSelectors();

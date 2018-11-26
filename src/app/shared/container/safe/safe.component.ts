@@ -50,10 +50,11 @@ export class SafeComponent implements OnInit {
     //   withLatestFrom(this.safe$),
     //   switchMap(([trigger, safe]: [any, Safe]) => this.service.getItems(safe.id))
     // );
-    this.items$ = merge(this.safe$, this.trigger$).pipe(
+    const itemsReloadEvent$ = merge(this.safe$, this.trigger$).pipe(
       withLatestFrom(this.safe$),
       tap(([trigger, safe]: [any, Safe]) => this.store.dispatch(new LoadSafeItems({ safeId: safe.id })))
     );
+    itemsReloadEvent$.subscribe(() => console.log('items reload event'));
     this.items$ = this.store.pipe(select(selectItemsBySafeId));
   }
 
