@@ -300,13 +300,14 @@ refreshItems2(item: SafeItem) {
 
 </details>
 
-
 - Remove the getSafes method from SafeService
 - Fix admin-safes-resolver.service.ts
 
-hint: use store LoadAdminSafes Action and subscribe to state.
-hint: make sure you return a cold observable as a result of resolve()
-hint: dont remove safe service from constructor, to make sure it is provided.
+Hints:
+
+- use store LoadAdminSafes Action and subscribe to state.
+- make sure you return a cold observable as a result of resolve()
+- dont remove safe service from constructor, to make sure it is provided.
 
 ```typescript
 import { Safe } from '~core/model';
