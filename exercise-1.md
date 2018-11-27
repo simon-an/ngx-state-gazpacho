@@ -78,7 +78,6 @@ export const metaReducers: MetaReducer<State>[] = !environment.production ? [sto
 ```bash
 ng generate @ngrx/schematics:store Safe --statePath shared/store/safe/state --module shared/shared.module.ts
 ng g @ngrx/schematics:feature shared/store/safe/SafeList --flat --group --reducers state/index.ts
-ng g @ngrx/schematics:feature shared/store/safe/Activesafe --flat --group --reducers state/index.ts
 ```
 
 - State for safe-list.reducer will look like this.
