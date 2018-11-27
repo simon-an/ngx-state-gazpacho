@@ -1,4 +1,4 @@
-#  Exercise 1 - Implement SafeItem Actions and Reducer
+# Exercise 1 - Implement SafeItem Actions and Reducer
 
 ## 1.1 Install schematics
 
@@ -11,10 +11,13 @@ ng config cli.defaultCollection @ngrx/schematics
 ```
 
 UNIX
+
 ```bash
 npm install @ngrx/{store,effects,entity,store-devtools} --save
 ```
+
 WINDOWS
+
 ```bash
 npm install @ngrx/store @ngrx/effects @ngrx/entity @ngrx/store-devtools -S
 ```
@@ -34,6 +37,7 @@ ng g @ngrx/schematics:feature root-store/SafeItem --flat --group --reducers stat
 ```
 
 Result:
+
 ```
 src\app\root-store\                          
 ├── actions                                  
@@ -50,6 +54,7 @@ src\app\root-store\
 ```
 
 ## 1.4 Add Metareducer Store Freeze, to detect shared state errors during development
+
 - Only needed with ngrx6. When ngrx7 is released it will be included.
 
 ```bash
@@ -57,14 +62,14 @@ src\app\root-store\
 ```
 
 add to root-store/state/index.ts
+
 ```typescript
 import { storeFreeze } from 'ngrx-store-freeze';
 ...
 export const metaReducers: MetaReducer<State>[] = !environment.production ? [storeFreeze] : [];
 ```
 
-
-### 1.5 Create Safes state in shared module 
+### 1.5 Create Safes state in shared module
 
 - Generate Store Module in Shared Module
 
@@ -74,8 +79,7 @@ ng g @ngrx/schematics:feature shared/store/safe/SafeList --flat --group --reduce
 ng g @ngrx/schematics:feature shared/store/safe/Activesafe --flat --group --reducers state/index.ts
 ```
 
-
-- State will look like this.
+- State for safe-list.reducer will look like this.
 
 ```typescript
 export interface State {
@@ -84,7 +88,13 @@ export interface State {
 }
 ```
 
-shared/store/safe/actions/safe-list.actions.ts
+Add action events to shared/store/safe/actions/safe-list.actions.ts:
+
+- Add action event "Load SafeLists" from Source "Admin".
+- Add action event "Load SafeLists Success" from Source "Safe API".
+- Add action event "Load SafeLists Failure" from "Safe API"
+
+<details><summary>Solution shared/store/safe/actions/safe-list.actions.ts</summary>
 
 ```typescript
 import { Action } from '@ngrx/store';
@@ -93,8 +103,8 @@ import { Safe } from '~core/model';
 export enum SafeListActionTypes {
   LoadUserSafes = '[User] Load SafeLists',
   LoadAdminSafes = '[Admin] Load SafeLists',
-  LoadSafeListsSuccess = '[SafeList] Load SafeLists Success',
-  LoadSafeListsFailure = '[SafeList] Load SafeLists Failure'
+  LoadSafeListsSuccess = '[Safe API] Load SafeLists Success',
+  LoadSafeListsFailure = '[Safe API] Load SafeLists Failure'
 }
 
 export class LoadUserSafes implements Action {
@@ -114,7 +124,11 @@ export class LoadSafeListsFailure implements Action {
 export type SafeListActions = LoadUserSafes | LoadAdminSafes | LoadSafeListsSuccess | LoadSafeListsFailure;
 ```
 
-shared/store/safe/reducers/safe-list.reducer.ts
+</details>
+
+Add action types to reducer shared/store/safe/reducers/safe-list.reducer.ts
+
+<details><summary>Solution shared/store/safe/reducers/safe-list.reducer.ts</summary>
 
 ```typescript
 import { Action } from '@ngrx/store';
@@ -144,9 +158,10 @@ export function reducer(state = initialState, action: SafeListActions): State {
       return state;
   }
 }
-
-
 ```
+
+</details>
+
 ### 1.6  Subscribe to State
 
 - create selector in shared/store/safe/selectors/safe-list.selector.ts
@@ -178,8 +193,8 @@ export const selectSafesLoading = createSelector(
 
 ```
 
-
 user/container/userhome/userhome.component.ts
+
 - hint: dont remove safe service from constructor, to make sure it is provided.
 
 ```typescript
@@ -211,7 +226,6 @@ export class UserHomeComponent implements OnInit {
 
 ```
 
-
 No Safes are loaded yet. So lets add a Spinner.
 
 ### 1.7 Create Spinner
@@ -241,6 +255,7 @@ this.store.dispatch(new LoadSafeAfterUserAddItem());
 ```
 
 - Fix admin-safes-resolver.service.ts
+
 hint: use store LodaAdminSafes Action and subscribe to state.
 hint: make sure you return a cold observable as a result of resolve()
 hint: dont remove safe service from constructor, to make sure it is provided.
@@ -416,10 +431,12 @@ imports: [
 providers: [{ provide: RouterStateSerializer, useClass: CustomSerializer }]
 
 ```
+
 - Add the router state selector and router reducert to root-store/state.index.ts
 add routerReducer to ActionReducerMap
 add selector for router state
-```
+
+```typescript
 export const reducers: ActionReducerMap<State> = {
   router: routerReducer
 };
@@ -432,11 +449,13 @@ export const getRouterState = createFeatureSelector<RouterReducerState<RouterSta
 
 - remove getSafe() from safe.service.ts 
 - replace call of getSafe() in core/services/safe-resolver.service.ts with
+
 ```typescript
 select(selectSafeById)
 ```
 
 Selector Solution:
+
 ```typescript
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 import * as fromSafeList from '../reducers/safe-list.reducer';
@@ -470,7 +489,4 @@ export const selectSafeById = createSelector(
   }
 );
 
-
 ```
-
-
