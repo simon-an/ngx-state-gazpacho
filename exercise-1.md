@@ -250,11 +250,11 @@ export class UserHomeComponent implements OnInit {
 
 </details>
 
-No Safes are loaded yet. So lets add a Spinner.
-
 ## 1.7 Create Spinner
 
-add to userhome.component.html
+No Safes are loaded yet. So lets add a Spinner.
+
+Add to userhome.component.html
 
 ```html
 <mat-spinner *ngIf="pending$| async"></mat-spinner>
