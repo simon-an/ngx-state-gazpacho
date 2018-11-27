@@ -92,6 +92,7 @@ export interface State {
 
 Add action events to shared/store/safe/actions/safe-list.actions.ts:
 
+- Add action event "Load SafeLists On Items Change" from Source "User".
 - Add action event "Load SafeLists" from Source "Admin".
 - Add action event "Load SafeLists Success" from Source "Safe API".
 - Add action event "Load SafeLists Failure" from "Safe API"
@@ -104,13 +105,17 @@ import { Safe } from '~core/model';
 
 export enum SafeListActionTypes {
   LoadUserSafes = '[User] Load SafeLists',
+  LoadSafeAfterUserAddItem = '[User] Load SafeLists On Items Change',
   LoadAdminSafes = '[Admin] Load SafeLists',
   LoadSafeListsSuccess = '[Safe API] Load SafeLists Success',
-  LoadSafeListsFailure = '[Safe API] Load SafeLists Failure'
+  LoadSafeListsFailure = '[Safe API] Load SafeLists Failure',
 }
 
 export class LoadUserSafes implements Action {
   readonly type = SafeListActionTypes.LoadUserSafes;
+}
+export class LoadSafeAfterUserAddItem implements Action {
+  readonly type = SafeListActionTypes.LoadSafeAfterUserAddItem
 }
 export class LoadAdminSafes implements Action {
   readonly type = SafeListActionTypes.LoadAdminSafes;
@@ -264,9 +269,10 @@ Add to userhome.component.html
 
 ## 1.8 Modify safes in store
 
-- remove the safe state from SafeService
-- remove the getSafes method from SafeService
-- change the getSafe method in SaveService to subsrcibe to safes in store.
+- Remove the safe state from SafeService
+- Change the getSafe method in SaveService to subsrcibe to safes in store.
+
+<details><summary>Solution getSafe in SaveService</summary>
 
 ```typescript
 getSafe(safeId: string): Observable<Safe> {
@@ -274,12 +280,29 @@ getSafe(safeId: string): Observable<Safe> {
 }
 ```
 
-- in refreshItems2 trigger a LoadSaves
+</details>
+
+- In refreshItems2 dispatch the action LoadSafeAfterUserAddItem.
+
+<details><summary>Solution content of</summary>
 
 ```typescript
-this.store.dispatch(new LoadSafeAfterUserAddItem());
+refreshItems2(item: SafeItem) {
+  this.items
+    .pipe(
+      map(i => [...i, item]),
+      take(1)
+    )
+    .subscribe(this.items);
+
+  this.store.dispatch(new LoadSafeAfterUserAddItem());
+}
 ```
 
+</details>
+
+
+- Remove the getSafes method from SafeService
 - Fix admin-safes-resolver.service.ts
 
 hint: use store LodaAdminSafes Action and subscribe to state.
