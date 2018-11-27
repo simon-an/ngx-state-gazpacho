@@ -1,6 +1,6 @@
 # NGRX Entities
 
-## 2.1 Add SafeItem Entity
+## 2.1 Add SaveItem Entity
 
 ```bash
 ng g @ngrx/schematics:entity shared/store/safe/SafeItem --group --reducers state/index.ts
@@ -12,6 +12,7 @@ ng g @ngrx/schematics:entity shared/store/safe/SafeItem --group --reducers state
 ```typescript
 import { SafeItem } from '~core/model';
 ```
+
 - remove items state from safe.service.ts
 - add LoadSafeItems action to getItems() of safe.service.ts
 
@@ -96,14 +97,15 @@ export class SafeService {
 
 </details>
 
-#### What is the current behavior in the store slice 'safeitem'? What is the expected behavior?
+- What is the current behavior in the store slice 'safeitem'?
+- What is the expected behavior?
 
 ## 2.2  Use the safeitems in the safe.component.ts
 
 - this.items$ = this.store.pipe(select(getSafeItems));
 
 <details><summary>safe.component.ts Solution</summary>
-  
+
 ```typescript
 import { Component, OnInit, ChangeDetectionStrategy, Input } from '@angular/core';
 import { ActivatedRoute, ParamMap } from '@angular/router';
@@ -199,46 +201,7 @@ export class SafeComponent implements OnInit {
 
 </details>
 
-
-
-## 2.3 update shared/store/safe/reducers/safe-item.reducer.ts
-
-- Add aditional State to SafeItem 
-
-```typescript
-export interface State extends EntityState<SafeItem> {
-  // additional entities state properties
-  safeItemMap: Dictionary<string>;
-  loading: boolean;
-}
-```
-
-- change LoadSafeItems so it sets the loading state to true
-
-```typescript
-case SafeItemActionTypes.LoadSafeItems: {
-    return { ...state, loading: true };
-    // return adapter.addAll(action.payload.safeItems, state);
-}
-```
-
-- change AddSafeItem to safe-item.reducer.ts, so that it adds new safeItems keys to the map safeItemMap contains [safeItemId]=safeId
-
-```typescript
- case SafeItemActionTypes.AddSafeItems: {
-      const updatedMap = {
-        ...state.safeItemMap,
-        ...action.payload.safeItems.reduce(function(filtered, item: SafeItem) {
-          filtered[item.id] = action.payload.safeId;
-          return filtered;
-        }, {})
-      };
-      const updatedState: State = { ...state, safeItemMap: updatedMap, loading: false } as State;
-      return adapter.addMany(action.payload.safeItems, updatedState);
-    }
-```
-
-#### 2.4 create selector to access SafeItems by Safe Id 
+## 2.3 create selector to access SafeItems by Safe Id
 
 - we need a selector to get SafeItems, when the safe changes and the Entities of the safeItem slice in the store changes.
 - hint. create: SelectSafeItemMap, SafeItemsLoading, selectItemsBySafeId and reuse the "fromSafeList.selectSafeById" selector
@@ -301,4 +264,42 @@ export const selectItemsBySafeId = createSelector(
 ![Redux](screenshots/reduxtools-ex2.jpg)
 
 - That the selector for to get the safe items works and is triggered when the safe id route is used to the safe detail page, when can see in the console:
+
 ![Redux](screenshots/console-ex2.jpg)
+
+## 2.4 update shared/store/safe/reducers/safe-item.reducer.ts
+
+- Add aditional State to SafeItem 
+
+```typescript
+export interface State extends EntityState<SafeItem> {
+  // additional entities state properties
+  safeItemMap: Dictionary<string>;
+  loading: boolean;
+}
+```
+
+- change LoadSafeItems so it sets the loading state to true
+
+```typescript
+case SafeItemActionTypes.LoadSafeItems: {
+    return { ...state, loading: true };
+    // return adapter.addAll(action.payload.safeItems, state);
+}
+```
+
+- change AddSafeItem to safe-item.reducer.ts, so that it adds new safeItems keys to the map safeItemMap contains [safeItemId]=safeId
+
+```typescript
+ case SafeItemActionTypes.AddSafeItems: {
+      const updatedMap = {
+        ...state.safeItemMap,
+        ...action.payload.safeItems.reduce(function(filtered, item: SafeItem) {
+          filtered[item.id] = action.payload.safeId;
+          return filtered;
+        }, {})
+      };
+      const updatedState: State = { ...state, safeItemMap: updatedMap, loading: false } as State;
+      return adapter.addMany(action.payload.safeItems, updatedState);
+    }
+```
