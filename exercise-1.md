@@ -150,7 +150,7 @@ export function reducer(state = initialState, action: SafeListActions): State {
     case SafeListActionTypes.LoadUserSafes:
     case SafeListActionTypes.LoadAdminSafes:
       return { ...state, pending: true };
-    case '[SafeList] Load SafeLists Success':
+    case '[Safe API] Load SafeLists Success':
       return { safes: [...action.payload.safes], pending: false };
     case SafeListActionTypes.LoadSafeListsFailure:
       return { ...state, pending: false };
