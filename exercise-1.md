@@ -69,7 +69,7 @@ import { storeFreeze } from 'ngrx-store-freeze';
 export const metaReducers: MetaReducer<State>[] = !environment.production ? [storeFreeze] : [];
 ```
 
-### 1.5 Create Safes state in shared module
+## 1.5 Create Safes state in shared module
 
 - Generate Store Module in Shared Module
 
@@ -162,7 +162,7 @@ export function reducer(state = initialState, action: SafeListActions): State {
 
 </details>
 
-### 1.6  Subscribe to State
+## 1.6  Subscribe to State
 
 - create selector in shared/store/safe/selectors/safe-list.selector.ts
 
@@ -252,7 +252,7 @@ export class UserHomeComponent implements OnInit {
 
 No Safes are loaded yet. So lets add a Spinner.
 
-### 1.7 Create Spinner
+## 1.7 Create Spinner
 
 add to userhome.component.html
 
@@ -260,7 +260,7 @@ add to userhome.component.html
 <mat-spinner *ngIf="pending$| async"></mat-spinner>
 ```
 
-### 1.8 Modify safes in store
+## 1.8 Modify safes in store
 
 - remove the safe state from SafeService
 - remove the getSafes method from SafeService
@@ -388,7 +388,7 @@ export class SafeService {
 
 ```
 
-### 1.9 Add Router-State to root-store
+## 1.9 Add Router-State to root-store
 
 - add @ngrx/router-store
 
@@ -457,6 +457,7 @@ providers: [{ provide: RouterStateSerializer, useClass: CustomSerializer }]
 ```
 
 - Add the router state selector and router reducert to root-store/state.index.ts
+
 add routerReducer to ActionReducerMap
 add selector for router state
 
