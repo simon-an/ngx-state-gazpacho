@@ -1,6 +1,6 @@
 # NGRX Entities
 
-## 2.1 Add SaveItem Entity
+## 2.1 Add SafeItem Entity
 
 ```bash
 ng g @ngrx/schematics:entity shared/store/safe/SafeItem --group --reducers state/index.ts
