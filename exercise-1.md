@@ -301,47 +301,8 @@ refreshItems2(item: SafeItem) {
 </details>
 
 - Remove the getSafes method from SafeService
-- Fix admin-safes-resolver.service.ts
 
-Hints:
-
-- use store LoadAdminSafes Action and subscribe to state.
-- make sure you return a cold observable as a result of resolve()
-- dont remove safe service from constructor, to make sure it is provided.
-
-```typescript
-import { Safe } from '~core/model';
-import { SafeService } from '~core/services';
-import { Injectable } from '@angular/core';
-import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import { Observable } from 'rxjs';
-import { Store, select } from '@ngrx/store';
-import { selectSafes } from '~shared/store/safe/selectors/safe-list.selector';
-import { LoadAdminSafes } from '~shared/store/safe/actions/safe-list.actions';
-import { State } from 'app/root-store/state';
-import { take, filter, tap } from 'rxjs/operators';
-
-@Injectable({
-  providedIn: 'root'
-})
-export class AdminSafesResolverService implements Resolve<Safe[]> {
-  constructor(private store: Store<State>, safeService: SafeService) {}
-
-  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<any> | Promise<any> | any {
-    this.store.dispatch(new LoadAdminSafes());
-    return this.store.pipe(
-      select(selectSafes),
-      filter(data => !!data && data.length > 0),
-      take(1),
-      tap((data => console.log('AdminSafesResolverService', data))
-    );
-  }
-}
-
-
-```
-
-- Safe Service Solution
+<details><summary>Solution SaveService</summary>
 
 ```typescript
 import { Injectable } from '@angular/core';
@@ -409,6 +370,47 @@ export class SafeService {
     return result$;
   }
 
+}
+
+```
+
+</details>
+
+- Fix admin-safes-resolver.service.ts
+
+Hints:
+
+- use store LoadAdminSafes Action and subscribe to state.
+- make sure you return a cold observable as a result of resolve()
+- dont remove safe service from constructor, to make sure it is provided.
+
+```typescript
+import { Safe } from '~core/model';
+import { SafeService } from '~core/services';
+import { Injectable } from '@angular/core';
+import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { Observable } from 'rxjs';
+import { Store, select } from '@ngrx/store';
+import { selectSafes } from '~shared/store/safe/selectors/safe-list.selector';
+import { LoadAdminSafes } from '~shared/store/safe/actions/safe-list.actions';
+import { State } from 'app/root-store/state';
+import { take, filter, tap } from 'rxjs/operators';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class AdminSafesResolverService implements Resolve<Safe[]> {
+  constructor(private store: Store<State>, safeService: SafeService) {}
+
+  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<any> | Promise<any> | any {
+    this.store.dispatch(new LoadAdminSafes());
+    return this.store.pipe(
+      select(selectSafes),
+      filter(data => !!data && data.length > 0),
+      take(1),
+      tap((data => console.log('AdminSafesResolverService', data))
+    );
+  }
 }
 
 ```
