@@ -30,6 +30,8 @@ ng generate @ngrx/schematics:store State --statePath root-store/state --root --m
 
 ```
 
+Add RootStoreModule to app.module.ts.
+
 ## 1.3 Add feature SafeItems
 
 ```bash
