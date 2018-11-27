@@ -84,8 +84,8 @@ ng g @ngrx/schematics:feature shared/store/safe/SafeList --flat --group --reduce
 
 ```typescript
 export interface State {
-  pending: boolean;
   safes: Safe[];
+  pending: boolean;
 }
 ```
 
