@@ -215,10 +215,10 @@ export const selectSafesLoading = createSelector(
   selectSafeList,
   (state: fromSafeList.State) => state.pending
 );
-
 ```
 
 </details>
+
 
 - In user/container/userhome/userhome.component.ts add "selectSafes" and "selectSafesLoading" selector and dispatch the LoadUserSafes action.
 Hint: dont remove safe service from constructor, to make sure it is provided.
