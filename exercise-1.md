@@ -150,7 +150,7 @@ export function reducer(state = initialState, action: SafeListActions): State {
     case SafeListActionTypes.LoadUserSafes:
     case SafeListActionTypes.LoadAdminSafes:
       return { ...state, pending: true };
-    case '[Safe API] Load SafeLists Success':
+    case '[SafeList] Load SafeLists Success':
       return { safes: [...action.payload.safes], pending: false };
     case SafeListActionTypes.LoadSafeListsFailure:
       return { ...state, pending: false };
@@ -174,6 +174,25 @@ import {
 import * as fromSafeList from '../reducers/safe-list.reducer';
 import * as fromSafe from '../state';
 
+export const selectSafeFeature = createFeatureSelector('safe');
+export const selectSafeList = createSelector(
+  selectSafeFeature,
+  (state: fromSafe.State) => state.safeList
+);
+
+```
+
+Add selectors "selectSafes" and "selectSafesLoading".
+
+<details><summary>Solution shared/store/safe/selectors/safe-list.selector.ts</summary>
+
+```typescript
+import {
+  createFeatureSelector,
+  createSelector,
+} from '@ngrx/store';
+import * as fromSafeList from '../reducers/safe-list.reducer';
+import * as fromSafe from '../state';
 
 export const selectSafeFeature = createFeatureSelector('safe');
 export const selectSafeList = createSelector(
@@ -193,9 +212,12 @@ export const selectSafesLoading = createSelector(
 
 ```
 
-user/container/userhome/userhome.component.ts
+</details>
 
-- hint: dont remove safe service from constructor, to make sure it is provided.
+In user/container/userhome/userhome.component.ts add "selectSafes" and "selectSafesLoading" selector and dispatch the LoadUserSafes action.
+Hint: dont remove safe service from constructor, to make sure it is provided.
+
+<details><summary>Solution user/container/userhome/userhome.component.ts</summary>
 
 ```typescript
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
@@ -225,6 +247,8 @@ export class UserHomeComponent implements OnInit {
 }
 
 ```
+
+</details>
 
 No Safes are loaded yet. So lets add a Spinner.
 
